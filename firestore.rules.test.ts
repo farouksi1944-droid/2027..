@@ -1,0 +1,97 @@
+/**
+ * Adversarial payload verification suite for firestore.rules ("Dirty Dozen").
+ * Run against Firebase Emulator Suite when testing rules locally.
+ */
+export const DIRTY_DOZEN_PAYLOADS = [
+  {
+    name: '01_unauthenticated_room_read',
+    actor: null,
+    op: 'get',
+    path: '/rooms/BAC-1001',
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '02_unverified_email_create_room',
+    actor: { uid: 'farouk_uid', email: 'farouk@example.com', email_verified: false },
+    op: 'create',
+    path: '/rooms/BAC-1001',
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '03_cross_account_member_update',
+    actor: { uid: 'farouk_uid', email_verified: true },
+    op: 'update',
+    path: '/rooms/BAC-1001/members/saeed_uid',
+    data: { xp: 99999 },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '04_uid_spoofing_member_create',
+    actor: { uid: 'farouk_uid', email_verified: true },
+    op: 'create',
+    path: '/rooms/BAC-1001/members/farouk_uid',
+    data: { uid: 'saeed_uid', roomCode: 'BAC-1001', role: 'player1' },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '05_stranger_join_full_room',
+    actor: { uid: 'stranger_uid', email_verified: true },
+    op: 'update',
+    path: '/rooms/BAC-1001',
+    data: { player2Uid: 'stranger_uid', player2Name: 'Intruder' },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '06_shadow_ghost_field_injection',
+    actor: { uid: 'farouk_uid', email_verified: true },
+    op: 'update',
+    path: '/rooms/BAC-1001/members/farouk_uid',
+    data: { xp: 100, isAdmin: true },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '07_pii_private_profile_read_by_opponent',
+    actor: { uid: 'saeed_uid', email_verified: true },
+    op: 'get',
+    path: '/users/farouk_uid/private/profile',
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '08_blanket_rooms_list_query',
+    actor: { uid: 'farouk_uid', email_verified: true },
+    op: 'list',
+    path: '/rooms',
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '09_id_poisoning_invalid_room_code',
+    actor: { uid: 'farouk_uid', email_verified: true },
+    op: 'create',
+    path: '/rooms/invalid$code!',
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '10_role_mutation_player2_to_player1',
+    actor: { uid: 'saeed_uid', email_verified: true },
+    op: 'update',
+    path: '/rooms/BAC-1001/members/saeed_uid',
+    data: { role: 'player1' },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '11_forged_client_timestamp',
+    actor: { uid: 'farouk_uid', email_verified: true },
+    op: 'update',
+    path: '/rooms/BAC-1001/members/farouk_uid',
+    data: { updatedAt: '1970-01-01T00:00:00Z' },
+    expected: 'PERMISSION_DENIED',
+  },
+  {
+    name: '12_unbounded_array_resource_poisoning',
+    actor: { uid: 'farouk_uid', email_verified: true },
+    op: 'update',
+    path: '/rooms/BAC-1001/members/farouk_uid',
+    data: { activityDates: Array.from({ length: 80 }, (_, i) => `2026-11-${i}`) },
+    expected: 'PERMISSION_DENIED',
+  },
+];

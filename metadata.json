@@ -1,0 +1,8 @@
+{
+  "name": "منافسة الباك 3 ثانوي - مراجعة الفصل الأول",
+  "description": "برنامج مراجعة وتكرار متباعد لامتحانات الفصل الأول للسنة الثالثة ثانوي علوم تجريبية في الجزائر مع حفظ صباحي وتحدي تنافسي بين صديقين.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
