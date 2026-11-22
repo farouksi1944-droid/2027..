@@ -2,7 +2,7 @@
   "entities": {
     "UserPrivateProfile": {
       "title": "UserPrivateProfile",
-      "description": "Private authenticated user metadata (PII isolated from shared competition rooms).",
+      "description": "Private authenticated user metadata (PII isolated from public competition leaderboard).",
       "type": "object",
       "properties": {
         "uid": {
@@ -22,62 +22,9 @@
       },
       "required": ["uid", "email", "createdAt"]
     },
-    "CompetitionRoom": {
-      "title": "CompetitionRoom",
-      "description": "Two-student Term 1 study competition room linking Farouk and Saeed.",
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "string",
-          "minLength": 3,
-          "maxLength": 24,
-          "pattern": "^[A-Z0-9_-]+$"
-        },
-        "ownerId": {
-          "type": "string",
-          "maxLength": 128,
-          "pattern": "^[a-zA-Z0-9_-]+$"
-        },
-        "player1Uid": {
-          "type": "string",
-          "maxLength": 128,
-          "pattern": "^[a-zA-Z0-9_-]+$"
-        },
-        "player1Name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 30
-        },
-        "player2Uid": {
-          "type": "string",
-          "maxLength": 128
-        },
-        "player2Name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 30
-        },
-        "createdAt": {
-          "type": "object"
-        },
-        "updatedAt": {
-          "type": "object"
-        }
-      },
-      "required": [
-        "code",
-        "ownerId",
-        "player1Uid",
-        "player1Name",
-        "player2Uid",
-        "player2Name",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "RoomMemberProgress": {
-      "title": "RoomMemberProgress",
-      "description": "Individual student study progress, spaced-repetition reviews, XP, and recent competition history.",
+    "ParticipantProgress": {
+      "title": "ParticipantProgress",
+      "description": "Single-account student study progress, scientific exercises, mastery stats, and leaderboard competition data.",
       "type": "object",
       "properties": {
         "uid": {
@@ -85,15 +32,9 @@
           "maxLength": 128,
           "pattern": "^[a-zA-Z0-9_-]+$"
         },
-        "roomCode": {
+        "visibility": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 24,
-          "pattern": "^[A-Z0-9_-]+$"
-        },
-        "role": {
-          "type": "string",
-          "enum": ["player1", "player2"]
+          "enum": ["public_competition"]
         },
         "name": {
           "type": "string",
@@ -152,8 +93,7 @@
       },
       "required": [
         "uid",
-        "roomCode",
-        "role",
+        "visibility",
         "name",
         "xp",
         "duelHighScore",
@@ -179,13 +119,9 @@
       "schema": { "$ref": "#/entities/UserPrivateProfile" },
       "description": "Isolated private user profile holding verified email address."
     },
-    "/rooms/{roomCode}": {
-      "schema": { "$ref": "#/entities/CompetitionRoom" },
-      "description": "Two-player study competition room connecting Farouk and Saeed across devices."
-    },
-    "/rooms/{roomCode}/members/{memberId}": {
-      "schema": { "$ref": "#/entities/RoomMemberProgress" },
-      "description": "Per-account study progress and spaced repetition state readable by the room opponent for live competition."
+    "/participants/{participantId}": {
+      "schema": { "$ref": "#/entities/ParticipantProgress" },
+      "description": "Single-account progress documents readable across authenticated participants for live points comparison."
     }
   }
 }

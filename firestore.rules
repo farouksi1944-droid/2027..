@@ -23,10 +23,6 @@ service cloud.firestore {
       return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function isValidRoomCode(code) {
-      return code is string && code.size() >= 3 && code.size() <= 24 && code.matches('^[A-Z0-9_\\-]+$');
-    }
-
     function isValidString(val, minLen, maxLen) {
       return val is string && val.size() >= minLen && val.size() <= maxLen;
     }
@@ -41,43 +37,10 @@ service cloud.firestore {
         && isValidString(data.email, 3, 254);
     }
 
-    function isValidCompetitionRoom(data, roomCode) {
-      return data.keys().hasAll([
-          'code',
-          'ownerId',
-          'player1Uid',
-          'player1Name',
-          'player2Uid',
-          'player2Name',
-          'createdAt',
-          'updatedAt'
-        ])
-        && data.keys().hasOnly([
-          'code',
-          'ownerId',
-          'player1Uid',
-          'player1Name',
-          'player2Uid',
-          'player2Name',
-          'createdAt',
-          'updatedAt'
-        ])
-        && isValidRoomCode(data.code)
-        && data.code == roomCode
-        && isValidId(data.ownerId)
-        && isValidId(data.player1Uid)
-        && isValidString(data.player1Name, 1, 30)
-        && (data.player2Uid == '' || isValidId(data.player2Uid))
-        && isValidString(data.player2Name, 1, 30)
-        && data.createdAt is timestamp
-        && data.updatedAt is timestamp;
-    }
-
-    function isValidMemberProgress(data, roomCode, memberId) {
+    function isValidParticipantProgress(data, participantId) {
       return data.keys().hasAll([
           'uid',
-          'roomCode',
-          'role',
+          'visibility',
           'name',
           'xp',
           'duelHighScore',
@@ -98,8 +61,7 @@ service cloud.firestore {
         ])
         && data.keys().hasOnly([
           'uid',
-          'roomCode',
-          'role',
+          'visibility',
           'name',
           'xp',
           'duelHighScore',
@@ -119,11 +81,9 @@ service cloud.firestore {
           'updatedAt'
         ])
         && isValidId(data.uid)
-        && data.uid == memberId
+        && data.uid == participantId
         && data.uid == request.auth.uid
-        && isValidRoomCode(data.roomCode)
-        && data.roomCode == roomCode
-        && (data.role == 'player1' || data.role == 'player2')
+        && data.visibility == 'public_competition'
         && isValidString(data.name, 1, 30)
         && data.xp is number && data.xp >= 0 && data.xp <= 1000000
         && data.duelHighScore is number && data.duelHighScore >= 0 && data.duelHighScore <= 100
@@ -146,18 +106,7 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
-    function isRoomParticipant(roomCode) {
-      let roomData = get(/databases/$(database)/documents/rooms/$(roomCode)).data;
-      return roomData.player1Uid == request.auth.uid || roomData.player2Uid == request.auth.uid;
-    }
-
-    function matchesRoomRole(roomCode, role) {
-      let roomData = get(/databases/$(database)/documents/rooms/$(roomCode)).data;
-      return (role == 'player1' && roomData.player1Uid == request.auth.uid)
-        || (role == 'player2' && roomData.player2Uid == request.auth.uid);
-    }
-
-    // 4. Isolated Private User Profile
+    // 4. Isolated Private User Profile (PII)
     match /users/{userId}/private/profile {
       allow get: if isSignedIn() && isValidId(userId) && userId == request.auth.uid;
       allow create: if isSignedIn()
@@ -174,107 +123,47 @@ service cloud.firestore {
         && incoming().diff(existing()).affectedKeys().hasOnly(['email']);
     }
 
-    // 5. Competition Room Metadata & Subcollection Members
-    match /rooms/{roomCode} {
+    // 5. Single-Account Public Competition Leaderboard
+    match /participants/{participantId} {
       allow get: if isSignedIn()
-        && isValidRoomCode(roomCode)
-        && (
-          resource == null
-          || existing().player1Uid == request.auth.uid
-          || existing().player2Uid == request.auth.uid
-          || existing().player2Uid == ''
-        );
+        && isValidId(participantId)
+        && (participantId == request.auth.uid || existing().visibility == 'public_competition');
 
       allow list: if isSignedIn()
-        && (resource.data.player1Uid == request.auth.uid || resource.data.player2Uid == request.auth.uid);
+        && resource.data.visibility == 'public_competition';
 
       allow create: if isSignedIn()
-        && isValidRoomCode(roomCode)
-        && isValidCompetitionRoom(incoming(), roomCode)
-        && incoming().ownerId == request.auth.uid
-        && incoming().player1Uid == request.auth.uid
-        && incoming().player2Uid == ''
-        && incoming().createdAt == request.time
+        && isValidId(participantId)
+        && participantId == request.auth.uid
+        && isValidParticipantProgress(incoming(), participantId)
         && incoming().updatedAt == request.time;
 
       allow update: if isSignedIn()
-        && isValidRoomCode(roomCode)
-        && isValidCompetitionRoom(incoming(), roomCode)
-        && incoming().code == existing().code
-        && incoming().ownerId == existing().ownerId
-        && incoming().player1Uid == existing().player1Uid
-        && incoming().createdAt == existing().createdAt
+        && isValidId(participantId)
+        && participantId == request.auth.uid
+        && isValidParticipantProgress(incoming(), participantId)
+        && incoming().uid == existing().uid
+        && incoming().visibility == existing().visibility
         && incoming().updatedAt == request.time
-        && (
-          // Action 1: Player 2 joins open slot
-          (
-            existing().player2Uid == ''
-            && existing().player1Uid != request.auth.uid
-            && incoming().player2Uid == request.auth.uid
-            && incoming().diff(existing()).affectedKeys().hasOnly(['player2Uid', 'player2Name', 'updatedAt'])
-          )
-          // Action 2: Player 1 updates their own display name
-          || (
-            existing().player1Uid == request.auth.uid
-            && incoming().diff(existing()).affectedKeys().hasOnly(['player1Name', 'updatedAt'])
-          )
-          // Action 3: Player 2 updates their own display name
-          || (
-            existing().player2Uid == request.auth.uid
-            && incoming().diff(existing()).affectedKeys().hasOnly(['player2Name', 'updatedAt'])
-          )
-          // Action 4: Player 2 leaves room
-          || (
-            existing().player2Uid == request.auth.uid
-            && incoming().player2Uid == ''
-            && incoming().diff(existing()).affectedKeys().hasOnly(['player2Uid', 'updatedAt'])
-          )
-        );
-
-      match /members/{memberId} {
-        allow get: if isSignedIn()
-          && isValidRoomCode(roomCode)
-          && isValidId(memberId)
-          && (memberId == request.auth.uid || isRoomParticipant(roomCode));
-
-        allow create: if isSignedIn()
-          && isValidRoomCode(roomCode)
-          && isValidId(memberId)
-          && memberId == request.auth.uid
-          && isValidMemberProgress(incoming(), roomCode, memberId)
-          && matchesRoomRole(roomCode, incoming().role)
-          && incoming().updatedAt == request.time;
-
-        allow update: if isSignedIn()
-          && isValidRoomCode(roomCode)
-          && isValidId(memberId)
-          && memberId == request.auth.uid
-          && isValidMemberProgress(incoming(), roomCode, memberId)
-          && isRoomParticipant(roomCode)
-          && incoming().uid == existing().uid
-          && incoming().roomCode == existing().roomCode
-          && incoming().role == existing().role
-          && incoming().updatedAt == request.time
-          && incoming().diff(existing()).affectedKeys().hasOnly([
-            'name',
-            'xp',
-            'duelHighScore',
-            'duelBestTimeSec',
-            'duelsPlayed',
-            'lastActiveDate',
-            'completedStages',
-            'lessonReviews',
-            'completedMorningPackets',
-            'completedBlocks',
-            'masteredCards',
-            'cardReviews',
-            'solvedExercises',
-            'activityDates',
-            'recentDuels',
-            'recentActivities',
-            'updatedAt'
-          ]);
-      }
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name',
+          'xp',
+          'duelHighScore',
+          'duelBestTimeSec',
+          'duelsPlayed',
+          'lastActiveDate',
+          'completedStages',
+          'lessonReviews',
+          'completedMorningPackets',
+          'completedBlocks',
+          'masteredCards',
+          'cardReviews',
+          'solvedExercises',
+          'activityDates',
+          'recentDuels',
+          'recentActivities',
+          'updatedAt'
+        ]);
     }
   }
 }

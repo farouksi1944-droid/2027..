@@ -149,7 +149,7 @@ export interface ScientificExercise {
 }
 
 export interface PlayerProgress {
-  id: 'player1' | 'player2';
+  id: string; // 'local' or Firebase uid
   name: string;
   /** Key: `${lessonId}:${stage}` */
   completedStages: Record<string, string>; // ISO timestamp
@@ -171,11 +171,13 @@ export interface PlayerProgress {
   xp: number;
   lastActiveDate: string;
   activityDates: string[];
+  recentDuels?: DuelRecord[];
+  recentActivities?: ActivityEntry[];
 }
 
 export interface ActivityEntry {
   id: string;
-  playerId: 'player1' | 'player2';
+  playerId: string;
   playerName: string;
   message: string;
   xpDelta: number;
@@ -184,24 +186,11 @@ export interface ActivityEntry {
 
 export interface DuelRecord {
   id: string;
-  playerId: 'player1' | 'player2';
+  playerId: string;
   playerName: string;
   category: string;
   score: number;
   total: number;
   elapsedSec: number;
   timestamp: string;
-}
-
-export interface ChallengeRoom {
-  code: string;
-  createdAt: string;
-  player1Uid?: string;
-  player2Uid?: string;
-  players: {
-    player1: PlayerProgress;
-    player2: PlayerProgress;
-  };
-  duelHistory: DuelRecord[];
-  activityLog: ActivityEntry[];
 }

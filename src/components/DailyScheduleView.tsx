@@ -11,7 +11,6 @@ import {
   RotateCcw,
   Sun,
   Trophy,
-  UserCheck,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { SUBJECT_ORDER, SUBJECTS, TERM1_LESSONS } from '../data/curriculum';
@@ -36,10 +35,11 @@ import { SubjectMasteryRing } from './SubjectMasteryRing';
 
 interface DailyScheduleViewProps {
   activePlayer: PlayerProgress;
-  opponentPlayer: PlayerProgress;
+  topOtherCompetitor: PlayerProgress | null;
+  myRank: number;
+  totalParticipants: number;
   isSignedIn: boolean;
   isCloudConnected: boolean;
-  hasOpponentJoined: boolean;
   authBusy: boolean;
   onSignIn: () => void;
   onToggleBlock: (block: ScheduleBlock) => void;
@@ -54,10 +54,11 @@ const lessonMap = new Map(TERM1_LESSONS.map((l) => [l.id, l]));
 
 export function DailyScheduleView({
   activePlayer,
-  opponentPlayer,
+  topOtherCompetitor,
+  myRank,
+  totalParticipants,
   isSignedIn,
   isCloudConnected,
-  hasOpponentJoined,
   authBusy,
   onSignIn,
   onToggleBlock,
@@ -112,7 +113,6 @@ export function DailyScheduleView({
   );
 
   const myCompletedCount = Object.keys(activePlayer.completedBlocks).length;
-  const friendCompletedCount = Object.keys(opponentPlayer.completedBlocks).length;
   const solvedExercisesMap = activePlayer.solvedExercises ?? {};
 
   const dayActionable = selectedDay.blocks.filter(
@@ -125,7 +125,7 @@ export function DailyScheduleView({
 
   return (
     <div className="space-y-6">
-      {/* Compact Header & Live Competition Summary */}
+      {/* Compact Single-Account Header */}
       <section className="rounded-xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -133,7 +133,7 @@ export function DailyScheduleView({
               3 ثانوي علوم تجريبية · 23 نوفمبر – 6 ديسمبر
             </div>
             <h1 className="mt-1 font-display text-xl sm:text-2xl font-bold text-slate-100">
-              برنامج {activePlayer.name} ومنافسة {opponentPlayer.name}
+              برنامجي للمراجعة — {activePlayer.name}
             </h1>
           </div>
 
@@ -146,33 +146,26 @@ export function DailyScheduleView({
                 className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors cursor-pointer disabled:opacity-60"
               >
                 <LogIn className="h-3.5 w-3.5" />
-                <span>{authBusy ? 'جاري الدخول...' : 'دخول بحساب Google للمزامنة'}</span>
-              </button>
-            ) : isCloudConnected ? (
-              <button
-                type="button"
-                onClick={onOpenArena}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700/70 bg-emerald-950/50 px-3 py-1.5 text-xs font-medium text-emerald-300 hover:bg-emerald-900/50 transition-colors cursor-pointer"
-              >
-                <span>
-                  {hasOpponentJoined
-                    ? `متصل لحظياً مع ${opponentPlayer.name}`
-                    : `غرفة سحابية نشطة · ادعُ ${opponentPlayer.name}`}
-                </span>
+                <span>{authBusy ? 'جاري الدخول...' : 'دخول بحساب Google لحفظ ومقارنة النقاط'}</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={onOpenArena}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-700/70 bg-amber-950/40 px-3.5 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-900/50 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700/70 bg-emerald-950/50 px-3 py-1.5 text-xs font-medium text-emerald-300 hover:bg-emerald-900/50 transition-colors cursor-pointer"
               >
-                <span>أنشئ أو انضم لغرفة مع سعيد ←</span>
+                <Trophy className="h-3.5 w-3.5" />
+                <span>
+                  {isCloudConnected && totalParticipants > 1
+                    ? `ترتيبك الآن: #${myRank} من ${totalParticipants} · قارن النقاط`
+                    : 'حسابك محفوظ سحابياً · عرض المنافسة'}
+                </span>
               </button>
             )}
           </div>
         </div>
 
-        {/* 3 Clean Numbers (My Account vs Opponent Live) */}
+        {/* 3 Clean Numbers */}
         <div className="mt-5 grid grid-cols-3 gap-4 border-t border-slate-800 pt-4">
           <div>
             <div className="text-xs text-slate-400">للامتحان</div>
@@ -183,7 +176,7 @@ export function DailyScheduleView({
 
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-slate-400">حسابي ({activePlayer.name})</span>
+              <span className="text-xs text-slate-400">نقاطي ({activePlayer.name})</span>
               {activePlayer.xp > 0 && !confirmingReset && (
                 <button
                   type="button"
@@ -226,13 +219,36 @@ export function DailyScheduleView({
           </div>
 
           <div>
-            <div className="text-xs text-slate-400">المنافس ({opponentPlayer.name})</div>
-            <div className="mt-0.5 font-mono-num text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
-              {opponentPlayer.xp} XP
+            <div className="text-xs text-slate-400">
+              {topOtherCompetitor ? `المنافسة (${topOtherCompetitor.name})` : 'المنافسة'}
             </div>
-            <div className="text-[11px] text-slate-400 tabular-nums">
-              {friendCompletedCount}/{totalActionableBlocks} حصة
-            </div>
+            {topOtherCompetitor ? (
+              <>
+                <div className="mt-0.5 font-mono-num text-lg sm:text-xl font-bold text-slate-100 tabular-nums">
+                  {topOtherCompetitor.xp} XP
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenArena}
+                  className="text-[11px] text-emerald-400 hover:underline cursor-pointer"
+                >
+                  مقارنة {totalParticipants} متنافسين ←
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="mt-0.5 font-mono-num text-base font-bold text-slate-300">
+                  {isSignedIn ? `${totalParticipants} مشارك` : 'محلي'}
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenArena}
+                  className="text-[11px] text-emerald-400 hover:underline cursor-pointer"
+                >
+                  لوحة مقارنة النقاط ←
+                </button>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -406,7 +422,6 @@ export function DailyScheduleView({
               block.type === 'monday_unavailable' ||
               block.type === 'jumuah_break';
             const isDone = Boolean(activePlayer.completedBlocks[block.id]);
-            const isFriendDone = Boolean(opponentPlayer.completedBlocks[block.id]);
             const subject = block.subjectId ? SUBJECTS[block.subjectId] : null;
             const isSciBlock = Boolean(
               block.subjectId && block.lessonId && isScientificSubject(block.subjectId)
@@ -499,13 +514,6 @@ export function DailyScheduleView({
                       {block.title}
                     </h3>
                     <p className="text-xs text-slate-400">{block.subtitle}</p>
-
-                    {isFriendDone && !isLocked && (
-                      <div className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400">
-                        <UserCheck className="h-3 w-3" />
-                        <span>أتمّها {opponentPlayer.name}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 

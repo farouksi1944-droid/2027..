@@ -6,7 +6,6 @@ import { formatArabicShortDate } from '../utils/spacedRepetition';
 
 interface MorningMemorizationViewProps {
   activePlayer: PlayerProgress;
-  opponentPlayer: PlayerProgress;
   selectedDate: string;
   onSelectDate: (date: string) => void;
   onTogglePacket: (packetId: string) => void;
@@ -16,7 +15,6 @@ interface MorningMemorizationViewProps {
 
 export function MorningMemorizationView({
   activePlayer,
-  opponentPlayer,
   selectedDate,
   onSelectDate,
   onTogglePacket,
@@ -35,7 +33,6 @@ export function MorningMemorizationView({
   );
 
   const isPacketDone = Boolean(activePlayer.completedMorningPackets[packet.id]);
-  const isFriendDone = Boolean(opponentPlayer.completedMorningPackets[packet.id]);
 
   // Build flashcards for the selected morning packet
   const packetFlashcards = useMemo(() => {
@@ -178,11 +175,6 @@ export function MorningMemorizationView({
               <h2 className="mt-1 font-display text-lg font-bold text-slate-100">
                 {packet.focusTitle}
               </h2>
-              {isFriendDone && (
-                <div className="mt-1 text-xs font-medium text-emerald-400">
-                  أتمّ {opponentPlayer.name} حفظ هذه الحقيبة الصباحية
-                </div>
-              )}
             </div>
 
             <button

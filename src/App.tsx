@@ -5,7 +5,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { MorningMemorizationView } from './components/MorningMemorizationView';
 import { SubjectsSpacedView } from './components/SubjectsSpacedView';
 import { TopBar, type ActiveTab } from './components/TopBar';
-import { useStudyRoom } from './hooks/useStudyRoom';
+import { useStudyAccount } from './hooks/useStudyAccount';
 import type { SubjectId } from './types/study';
 
 export default function App() {
@@ -18,18 +18,16 @@ export default function App() {
     user,
     authBusy,
     isCloudConnected,
-    hasOpponentJoined,
-    room,
-    activePlayerId,
     activePlayer,
-    opponentPlayer,
+    leaderboard,
+    otherParticipants,
+    myRank,
+    duelHistory,
+    activityLog,
     syncStatus,
     syncError,
     signInWithGoogle,
     signOutUser,
-    createRoom,
-    joinRoom,
-    leaveRoom,
     renameMyAccount,
     resetMyAccount,
     toggleLessonStage,
@@ -40,7 +38,7 @@ export default function App() {
     toggleMasteredCard,
     toggleScientificExercise,
     submitDuelResult,
-  } = useStudyRoom();
+  } = useStudyAccount();
 
   const handleOpenMorningPacket = (date: string) => {
     setMorningDate(date === '2026-12-06' ? '2026-12-05' : date);
@@ -79,10 +77,11 @@ export default function App() {
           {activeTab === 'schedule' && (
             <DailyScheduleView
               activePlayer={activePlayer}
-              opponentPlayer={opponentPlayer}
+              topOtherCompetitor={otherParticipants[0] ?? null}
+              myRank={myRank}
+              totalParticipants={leaderboard.length}
               isSignedIn={Boolean(user)}
               isCloudConnected={isCloudConnected}
-              hasOpponentJoined={hasOpponentJoined}
               authBusy={authBusy}
               onSignIn={() => void signInWithGoogle()}
               onToggleBlock={toggleScheduleBlock}
@@ -97,7 +96,6 @@ export default function App() {
           {activeTab === 'subjects' && (
             <SubjectsSpacedView
               activePlayer={activePlayer}
-              opponentPlayer={opponentPlayer}
               initialSubject={focusedSubject}
               initialExpandedLessonId={focusedLessonId}
               onToggleStage={toggleLessonStage}
@@ -109,7 +107,6 @@ export default function App() {
           {activeTab === 'morning' && (
             <MorningMemorizationView
               activePlayer={activePlayer}
-              opponentPlayer={opponentPlayer}
               selectedDate={morningDate}
               onSelectDate={setMorningDate}
               onTogglePacket={toggleMorningPacket}
@@ -120,20 +117,20 @@ export default function App() {
 
           {activeTab === 'arena' && (
             <CompetitionArenaView
-              room={room}
-              activePlayerId={activePlayerId}
+              activePlayer={activePlayer}
+              leaderboard={leaderboard}
+              otherParticipants={otherParticipants}
+              myRank={myRank}
+              duelHistory={duelHistory}
+              activityLog={activityLog}
               isSignedIn={Boolean(user)}
               userEmail={user?.email ?? null}
               authBusy={authBusy}
               isCloudConnected={isCloudConnected}
-              hasOpponentJoined={hasOpponentJoined}
               syncStatus={syncStatus}
               syncError={syncError}
               onSignIn={signInWithGoogle}
               onSignOut={signOutUser}
-              onCreateRoom={createRoom}
-              onJoinRoom={joinRoom}
-              onLeaveRoom={leaveRoom}
               onRenameMyAccount={renameMyAccount}
               onResetMyAccount={resetMyAccount}
               onSubmitDuel={submitDuelResult}

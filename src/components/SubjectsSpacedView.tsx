@@ -22,7 +22,6 @@ import { SubjectMasteryRing } from './SubjectMasteryRing';
 
 interface SubjectsSpacedViewProps {
   activePlayer: PlayerProgress;
-  opponentPlayer: PlayerProgress;
   initialSubject?: 'all' | SubjectId;
   initialExpandedLessonId?: string | null;
   onToggleStage: (lessonId: string, stage: SpacedStage, reviewDate?: string) => void;
@@ -34,7 +33,6 @@ const STAGES: SpacedStage[] = ['S0', 'R1', 'R2', 'R3'];
 
 export function SubjectsSpacedView({
   activePlayer,
-  opponentPlayer,
   initialSubject = 'all',
   initialExpandedLessonId = null,
   onToggleStage,
@@ -77,9 +75,8 @@ export function SubjectsSpacedView({
       SUBJECT_ORDER.map((subId) => ({
         info: SUBJECTS[subId],
         mine: computeSubjectMastery(activePlayer, subId),
-        opponent: computeSubjectMastery(opponentPlayer, subId),
       })),
-    [activePlayer, opponentPlayer]
+    [activePlayer]
   );
 
   const filteredLessons = useMemo(() => {
@@ -111,11 +108,10 @@ export function SubjectsSpacedView({
   const myReviewedLessonsCount = TERM1_LESSONS.filter(
     (l) => countCompleted(activePlayer, l.id) > 0
   ).length;
-  const friendReviewedLessonsCount = TERM1_LESSONS.filter(
-    (l) => countCompleted(opponentPlayer, l.id) > 0
-  ).length;
-
   const solvedExercisesMap = activePlayer.solvedExercises ?? {};
+  const solvedExercisesCount = SCIENTIFIC_EXERCISES.filter((ex) =>
+    Boolean(solvedExercisesMap[ex.id])
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -131,21 +127,12 @@ export function SubjectsSpacedView({
             </p>
           </div>
 
-          <div className="flex items-center gap-5 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <SubjectMasteryRing percentage={overallMastery} size={52} strokeWidth={5} label="التمكن الإجمالي" />
-              <div>
-                <div className="text-[11px] text-slate-400">التمكن الإجمالي</div>
-                <div className="font-mono-num text-xs font-semibold text-slate-200 tabular-nums">
-                  {myReviewedLessonsCount}/{TERM1_LESSONS.length} درس
-                </div>
-              </div>
-            </div>
-            <div className="h-8 w-px bg-slate-800" aria-hidden="true" />
-            <div>
-              <div className="text-[11px] text-slate-400">{opponentPlayer.name}</div>
-              <div className="font-mono-num text-base font-bold text-slate-100 tabular-nums">
-                {friendReviewedLessonsCount}/{TERM1_LESSONS.length}
+          <div className="flex items-center gap-4 shrink-0">
+            <SubjectMasteryRing percentage={overallMastery} size={52} strokeWidth={5} label="التمكن الإجمالي" />
+            <div className="space-y-0.5">
+              <div className="text-[11px] text-slate-400">التمكن الإجمالي ({activePlayer.name})</div>
+              <div className="font-mono-num text-xs font-semibold text-slate-200 tabular-nums">
+                {myReviewedLessonsCount}/{TERM1_LESSONS.length} درس · {solvedExercisesCount}/{SCIENTIFIC_EXERCISES.length} تمرين علمي
               </div>
             </div>
           </div>
@@ -169,7 +156,7 @@ export function SubjectsSpacedView({
           </div>
 
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-            {subjectMasteryList.map(({ info, mine, opponent }) => {
+            {subjectMasteryList.map(({ info, mine }) => {
               const isSelected = selectedSubject === info.id;
               return (
                 <button
@@ -194,13 +181,13 @@ export function SubjectsSpacedView({
                       {info.shortName}
                     </div>
                     <div className="text-[11px] text-slate-400 tabular-nums">
-                      {mine.isScientific
-                        ? `${mine.reviewedLessonsCount}/${mine.totalLessonsCount} د · ${mine.solvedExercisesCount}/${mine.totalExercisesCount} ت`
-                        : `${mine.reviewedLessonsCount}/${mine.totalLessonsCount} دروس`}
+                      {mine.reviewedLessonsCount}/{mine.totalLessonsCount} دروس
                     </div>
-                    <div className="text-[11px] text-slate-500 tabular-nums">
-                      {opponentPlayer.name}: {opponent.percentage}%
-                    </div>
+                    {mine.isScientific && (
+                      <div className="text-[11px] text-sky-400 tabular-nums">
+                        {mine.solvedExercisesCount}/{mine.totalExercisesCount} تمارين
+                      </div>
+                    )}
                   </div>
                 </button>
               );
@@ -287,7 +274,6 @@ export function SubjectsSpacedView({
             const subject = SUBJECTS[lesson.subjectId];
             const isExpanded = expandedLessonId === lesson.id;
             const spaced = computeLessonSpacedStatus(activePlayer, lesson.id, referenceDate);
-            const friendDone = countCompleted(opponentPlayer, lesson.id);
 
             const isScientific = isScientificSubject(lesson.subjectId);
             const lessonExercises = isScientific
@@ -325,14 +311,6 @@ export function SubjectsSpacedView({
                           <span aria-hidden="true">·</span>
                           <span className="font-mono-num text-sky-400 tabular-nums">
                             تمارين: {solvedInLesson}/{lessonExercises.length}
-                          </span>
-                        </>
-                      )}
-                      {friendDone > 0 && (
-                        <>
-                          <span aria-hidden="true">·</span>
-                          <span className="text-emerald-400">
-                            راجعه {opponentPlayer.name} ({friendDone}/4)
                           </span>
                         </>
                       )}
