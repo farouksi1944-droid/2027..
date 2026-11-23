@@ -68,7 +68,7 @@ export function DailyScheduleView({
   onOpenSubjectMastery,
   onResetMyAccount,
 }: DailyScheduleViewProps) {
-  const [selectedDate, setSelectedDate] = useState<string>('2026-11-23');
+  const [selectedDate, setSelectedDate] = useState<string>('2026-11-24');
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   const remindersDue = useMemo(
@@ -130,7 +130,7 @@ export function DailyScheduleView({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xs text-slate-400">
-              3 ثانوي علوم تجريبية · 23 نوفمبر – 6 ديسمبر
+              3 ثانوي علوم تجريبية · 24 نوفمبر – 6 ديسمبر
             </div>
             <h1 className="mt-1 font-display text-xl sm:text-2xl font-bold text-slate-100">
               برنامجي للمراجعة — {activePlayer.name}
@@ -331,14 +331,14 @@ export function DailyScheduleView({
               </div>
               <div className="mt-0.5 text-[11px] text-slate-400 truncate w-full">
                 {day.dayType === 'saturday_free'
-                  ? 'السبت فارغ'
+                  ? 'دراسة في المنزل'
                   : day.dayType === 'monday_closed'
                     ? 'مساءً غير متاح'
                     : day.dayType === 'friday_weekend'
-                      ? 'الجمعة'
+                      ? 'الجمعة (في المنزل)'
                       : day.dayType === 'exam_day'
                         ? 'الامتحان'
-                        : 'يوم دراسة'}
+                        : 'مدرسة + مساءً'}
               </div>
             </button>
           );

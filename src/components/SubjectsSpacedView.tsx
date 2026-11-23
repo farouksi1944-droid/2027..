@@ -55,7 +55,7 @@ export function SubjectsSpacedView({
   }, [initialExpandedLessonId]);
 
   const referenceDate =
-    activePlayer.lastActiveDate >= '2026-11-23' ? activePlayer.lastActiveDate : '2026-11-23';
+    activePlayer.lastActiveDate >= '2026-11-24' ? activePlayer.lastActiveDate : '2026-11-24';
 
   const remindersDue = useMemo(
     () => getRemindersForDate(activePlayer, referenceDate),

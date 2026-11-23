@@ -9,7 +9,7 @@ import type {
 } from '../types/study';
 
 const MAX_REVIEW_DATE = '2026-12-05';
-const MIN_START_DATE = '2026-11-23';
+const MIN_START_DATE = '2026-11-24';
 
 export function clampStudyDate(dateStr: string): string {
   if (!dateStr || dateStr < MIN_START_DATE) return MIN_START_DATE;
