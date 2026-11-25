@@ -61,12 +61,6 @@ export function MorningMemorizationView({
         back: f.achievements,
       });
     });
-    cards.push({
-      id: `${packet.id}-isl`,
-      tag: `علوم إسلامية · ${packet.islamic.lessonTitle}`,
-      front: `${packet.islamic.sectionTitle} — استرجع العناصر الأساسية والشاهد`,
-      back: `${packet.islamic.points.join(' | ')} — ${packet.islamic.evidence}`,
-    });
     return cards;
   }, [packet]);
 
@@ -101,7 +95,7 @@ export function MorningMemorizationView({
           <div>
             <div className="text-xs text-slate-400">06:45 – 07:15 صباحاً · 30 دقيقة يومياً</div>
             <h1 className="mt-1 font-display text-xl sm:text-2xl font-bold text-slate-100">
-              حفظ الصباح (تواريخ · مصطلحات · شخصيات · إسلامية)
+              حفظ الصباح — التاريخ والجغرافيا (تواريخ · مصطلحات · شخصيات)
             </h1>
           </div>
 
@@ -191,7 +185,7 @@ export function MorningMemorizationView({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* History Dates */}
             <section className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
               <div className="flex items-center justify-between">
@@ -249,7 +243,7 @@ export function MorningMemorizationView({
             <section className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-base font-bold text-slate-100">
-                  02. المصطلحات — تاريخ وجغرافيا (8 دقائق)
+                  02. المصطلحات — تاريخ وجغرافيا (10 دقائق)
                 </h3>
                 <span className="font-mono-num text-xs text-slate-400">
                   {packet.terms.length} مصطلحات
@@ -304,7 +298,7 @@ export function MorningMemorizationView({
             <section className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-base font-bold text-slate-100">
-                  03. الشخصيات التاريخية (6 دقائق)
+                  03. الشخصيات التاريخية (10 دقائق)
                 </h3>
                 <span className="font-mono-num text-xs text-slate-400">
                   {packet.figures.length} شخصيات
@@ -337,41 +331,6 @@ export function MorningMemorizationView({
                     </div>
                   );
                 })}
-              </div>
-            </section>
-
-            {/* Islamic Sciences */}
-            <section className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-base font-bold text-slate-100">
-                  04. العلوم الإسلامية (6 دقائق)
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => onToggleCard(`${packet.id}-isl`)}
-                  className={`px-2.5 py-1 text-[11px] font-medium rounded-md border cursor-pointer ${
-                    activePlayer.masteredCards[`${packet.id}-isl`]
-                      ? 'border-emerald-500 bg-emerald-600 text-white'
-                      : 'border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  {activePlayer.masteredCards[`${packet.id}-isl`] ? 'محفوظ' : 'تم الحفظ'}
-                </button>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="text-sm font-bold text-teal-400">{packet.islamic.lessonTitle}</div>
-                  <div className="text-xs text-slate-400">{packet.islamic.sectionTitle}</div>
-                </div>
-                <ul className="space-y-2 text-xs text-slate-300 leading-relaxed list-disc list-inside">
-                  {packet.islamic.points.map((pt) => (
-                    <li key={pt}>{pt}</li>
-                  ))}
-                </ul>
-                <div className="rounded-lg bg-slate-950/70 p-3 text-xs text-slate-200 border border-slate-800 leading-relaxed">
-                  <span className="font-semibold text-teal-400">الشاهد الشرعي: </span>
-                  {packet.islamic.evidence}
-                </div>
               </div>
             </section>
           </div>

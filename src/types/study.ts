@@ -2,12 +2,7 @@ export type SubjectId =
   | 'sciences'
   | 'physics'
   | 'math'
-  | 'arabic'
-  | 'history_geo'
-  | 'islamic'
-  | 'philosophy'
-  | 'french'
-  | 'english';
+  | 'history_geo';
 
 export type SpacedStage = 'S0' | 'R1' | 'R2' | 'R3';
 
@@ -55,6 +50,7 @@ export interface ScheduleBlock {
   subtitle: string;
   subjectId?: SubjectId;
   lessonId?: string;
+  lessonIds?: string[];
   stage?: SpacedStage;
   morningPacketId?: string;
   xpReward: number;
@@ -90,13 +86,6 @@ export interface MemoFigureItem {
   lessonRef: string;
 }
 
-export interface IslamicMemoItem {
-  lessonTitle: string;
-  sectionTitle: string;
-  points: string[];
-  evidence: string;
-}
-
 export interface MorningPacket {
   id: string;
   date: string; // YYYY-MM-DD
@@ -106,13 +95,12 @@ export interface MorningPacket {
   historyDates: MemoDateItem[];
   terms: MemoTermItem[];
   figures: MemoFigureItem[];
-  islamic: IslamicMemoItem;
   xpReward: number;
 }
 
 export interface QuizQuestion {
   id: string;
-  category: 'تواريخ' | 'مصطلحات' | 'شخصيات' | 'علوم إسلامية' | 'مفاهيم علمية';
+  category: 'تواريخ' | 'مصطلحات' | 'شخصيات' | 'مفاهيم علمية';
   prompt: string;
   answer: string;
   options: string[];

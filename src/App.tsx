@@ -3,6 +3,7 @@ import { CompetitionArenaView } from './components/CompetitionArenaView';
 import { DailyScheduleView } from './components/DailyScheduleView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MorningMemorizationView } from './components/MorningMemorizationView';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { SubjectsSpacedView } from './components/SubjectsSpacedView';
 import { TopBar, type ActiveTab } from './components/TopBar';
 import { useStudyAccount } from './hooks/useStudyAccount';
@@ -10,7 +11,7 @@ import type { SubjectId } from './types/study';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('schedule');
-  const [morningDate, setMorningDate] = useState<string>('2026-11-24');
+  const [morningDate, setMorningDate] = useState<string>('2026-11-28');
   const [focusedSubject, setFocusedSubject] = useState<'all' | SubjectId>('all');
   const [focusedLessonId, setFocusedLessonId] = useState<string | null>(null);
 
@@ -140,7 +141,7 @@ export default function App() {
 
         <footer className="border-t border-slate-800 bg-slate-900">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-3 text-xs text-slate-400 sm:px-6">
-            <span>برنامج 3 ثانوي علوم تجريبية · 24 نوفمبر – 6 ديسمبر</span>
+            <span>برنامج 3 ثانوي علوم تجريبية · 28 نوفمبر – 6 ديسمبر</span>
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -166,6 +167,7 @@ export default function App() {
             </div>
           </div>
         </footer>
+        <OfflineIndicator />
       </div>
     </ErrorBoundary>
   );

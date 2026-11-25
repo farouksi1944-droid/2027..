@@ -68,7 +68,7 @@ export function DailyScheduleView({
   onOpenSubjectMastery,
   onResetMyAccount,
 }: DailyScheduleViewProps) {
-  const [selectedDate, setSelectedDate] = useState<string>('2026-11-24');
+  const [selectedDate, setSelectedDate] = useState<string>('2026-11-28');
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   const remindersDue = useMemo(
@@ -130,7 +130,7 @@ export function DailyScheduleView({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-xs text-slate-400">
-              3 ثانوي علوم تجريبية · 24 نوفمبر – 6 ديسمبر
+              3 ثانوي علوم تجريبية · 28 نوفمبر – 6 ديسمبر
             </div>
             <h1 className="mt-1 font-display text-xl sm:text-2xl font-bold text-slate-100">
               برنامجي للمراجعة — {activePlayer.name}
@@ -264,7 +264,7 @@ export function DailyScheduleView({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 lg:grid-cols-9">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           {subjectMasteries.map(({ info, metrics }) => (
             <button
               key={info.id}
@@ -295,8 +295,8 @@ export function DailyScheduleView({
       {/* Compact Focus Timer */}
       <FocusTimerBar />
 
-      {/* 13-Day Selector */}
-      <section className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-7">
+      {/* 9-Day Selector */}
+      <section className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-5">
         {THIRTEEN_DAY_PLAN.map((day) => {
           const isSelected = day.date === selectedDate;
           const actionable = day.blocks.filter(
@@ -424,14 +424,23 @@ export function DailyScheduleView({
             const isDone = Boolean(activePlayer.completedBlocks[block.id]);
             const subject = block.subjectId ? SUBJECTS[block.subjectId] : null;
             const isSciBlock = Boolean(
-              block.subjectId && block.lessonId && isScientificSubject(block.subjectId)
+              block.subjectId &&
+                (block.lessonId || (block.lessonIds && block.lessonIds.length > 0)) &&
+                isScientificSubject(block.subjectId)
             );
+            const blockLessonIds =
+              block.lessonIds && block.lessonIds.length > 0
+                ? block.lessonIds
+                : block.lessonId
+                  ? [block.lessonId]
+                  : [];
             const blockExercises = isSciBlock
-              ? SCIENTIFIC_EXERCISES.filter((ex) => ex.lessonId === block.lessonId)
+              ? SCIENTIFIC_EXERCISES.filter((ex) => blockLessonIds.includes(ex.lessonId))
               : [];
             const blockExercisesSolved = blockExercises.filter((ex) =>
               Boolean(solvedExercisesMap[ex.id])
             ).length;
+            const isFullUnitSession = block.durationLabel.includes('ساعتان ونصف');
 
             return (
               <div
@@ -487,7 +496,7 @@ export function DailyScheduleView({
                         </span>
                       )}
                       {block.type === 'jumuah_break' && (
-                        <span className="inline-flex items-center gap-1 text-slate-400">
+                        <span className="inline-flex items-center gap-1 font-medium text-teal-400">
                           <Clock className="h-3.5 w-3.5" />
                           صلاة واستراحة
                         </span>
@@ -498,6 +507,24 @@ export function DailyScheduleView({
                           يوم الامتحان
                         </span>
                       )}
+                      {(!isLocked || block.type === 'jumuah_break') &&
+                        block.durationLabel &&
+                        block.durationLabel !== 'استراحة' && (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            <span
+                              className={
+                                isFullUnitSession
+                                  ? 'font-semibold text-amber-300'
+                                  : block.type === 'jumuah_break'
+                                    ? 'text-slate-400'
+                                    : 'text-slate-300'
+                              }
+                            >
+                              {block.durationLabel}
+                            </span>
+                          </>
+                        )}
                       {!isLocked && block.xpReward > 0 && (
                         <>
                           <span aria-hidden="true">·</span>
@@ -528,10 +555,10 @@ export function DailyScheduleView({
                         افتح البطاقة
                       </button>
                     )}
-                    {isSciBlock && block.subjectId && block.lessonId && blockExercises.length > 0 && (
+                    {isSciBlock && block.subjectId && blockLessonIds.length > 0 && blockExercises.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => onOpenSubjectMastery(block.subjectId!, block.lessonId)}
+                        onClick={() => onOpenSubjectMastery(block.subjectId!, blockLessonIds[0])}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-300 border border-slate-700 rounded-lg bg-slate-950 hover:bg-slate-800 transition-colors whitespace-nowrap cursor-pointer"
                       >
                         <BookOpenCheck className="h-3.5 w-3.5" />

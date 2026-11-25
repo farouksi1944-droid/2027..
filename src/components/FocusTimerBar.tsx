@@ -50,7 +50,7 @@ export function FocusTimerBar({ initialMinutes = 30 }: FocusTimerBarProps) {
 
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 rounded-lg bg-slate-800 p-0.5">
-          {[30, 50, 90].map((m) => (
+          {[30, 50, 90, 150].map((m) => (
             <button
               key={m}
               type="button"
@@ -61,7 +61,7 @@ export function FocusTimerBar({ initialMinutes = 30 }: FocusTimerBarProps) {
                   : 'text-slate-400 hover:text-slate-100'
               }`}
             >
-              {m}د
+              {m === 150 ? '2.5سا' : `${m}د`}
             </button>
           ))}
         </div>

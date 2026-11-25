@@ -4,12 +4,7 @@ const STROKE_COLORS: Record<SubjectId, string> = {
   sciences: '#34d399', // emerald-400
   physics: '#38bdf8', // sky-400
   math: '#818cf8', // indigo-400
-  arabic: '#fbbf24', // amber-400
   history_geo: '#fb7185', // rose-400
-  islamic: '#2dd4bf', // teal-400
-  philosophy: '#cbd5e1', // slate-300
-  french: '#60a5fa', // blue-400
-  english: '#22d3ee', // cyan-400
 };
 
 interface SubjectMasteryRingProps {

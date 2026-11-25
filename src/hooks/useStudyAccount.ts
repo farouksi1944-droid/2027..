@@ -78,7 +78,7 @@ function createInitialAccount(id: string, name: string): PlayerProgress {
     duelBestTimeSec: 0,
     duelsPlayed: 0,
     xp: 0,
-    lastActiveDate: '2026-11-24',
+    lastActiveDate: '2026-11-28',
     activityDates: [],
     recentDuels: [],
     recentActivities: [],
@@ -99,7 +99,7 @@ function buildParticipantPayload(
     duelHighScore: Math.max(0, Math.min(100, Math.round(player.duelHighScore || 0))),
     duelBestTimeSec: Math.max(0, Math.min(86400, Math.round(player.duelBestTimeSec || 0))),
     duelsPlayed: Math.max(0, Math.min(10000, Math.round(player.duelsPlayed || 0))),
-    lastActiveDate: (player.lastActiveDate || '2026-11-24').slice(0, 16),
+    lastActiveDate: (player.lastActiveDate || '2026-11-28').slice(0, 16),
     completedStages: player.completedStages ?? {},
     lessonReviews: player.lessonReviews ?? {},
     completedMorningPackets: player.completedMorningPackets ?? {},
@@ -128,7 +128,7 @@ function participantDocToPlayer(docData: ParticipantDocPayload): PlayerProgress 
     duelBestTimeSec: docData.duelBestTimeSec ?? 0,
     duelsPlayed: docData.duelsPlayed ?? 0,
     xp: docData.xp ?? 0,
-    lastActiveDate: docData.lastActiveDate ?? '2026-11-24',
+    lastActiveDate: docData.lastActiveDate ?? '2026-11-28',
     activityDates: docData.activityDates ?? [],
     recentDuels: docData.recentDuels ?? [],
     recentActivities: docData.recentActivities ?? [],
@@ -166,6 +166,20 @@ export function useStudyAccount() {
       // ignore storage quota errors
     }
   }, [localAccount]);
+
+  useEffect(() => {
+    const handleStorageSync = (e: StorageEvent) => {
+      if (e.key === LOCAL_STORAGE_KEY && e.newValue) {
+        try {
+          setLocalAccount(JSON.parse(e.newValue) as PlayerProgress);
+        } catch {
+          // ignore malformed storage sync
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageSync);
+    return () => window.removeEventListener('storage', handleStorageSync);
+  }, []);
 
   // Listen for Firebase Auth state
   useEffect(() => {
@@ -703,13 +717,22 @@ export function useStudyAccount() {
         const nextReviews = { ...(current.lessonReviews ?? {}) };
         const nextPackets = { ...current.completedMorningPackets };
 
+        const targetLessonIds =
+          block.lessonIds && block.lessonIds.length > 0
+            ? block.lessonIds
+            : block.lessonId
+              ? [block.lessonId]
+              : [];
+
         let xpDelta = 0;
         if (wasDone) {
           delete nextBlocks[block.id];
           xpDelta = -block.xpReward;
-          if (block.lessonId && block.stage) {
-            delete nextStages[`${block.lessonId}:${block.stage}`];
-            delete nextReviews[block.lessonId];
+          if (block.stage) {
+            for (const lid of targetLessonIds) {
+              delete nextStages[`${lid}:${block.stage}`];
+              delete nextReviews[lid];
+            }
           }
           if (block.morningPacketId) {
             delete nextPackets[block.morningPacketId];
@@ -717,16 +740,18 @@ export function useStudyAccount() {
         } else {
           nextBlocks[block.id] = `${effectiveDate}T19:00:00.000Z`;
           xpDelta = block.xpReward;
-          if (block.lessonId && block.stage) {
-            nextStages[`${block.lessonId}:${block.stage}`] = `${effectiveDate}T19:00:00.000Z`;
-            const scheduled = computeNextLessonReview(
-              current,
-              block.lessonId,
-              block.stage,
-              'good',
-              effectiveDate
-            );
-            nextReviews[block.lessonId] = scheduled.reviewState;
+          if (block.stage) {
+            for (const lid of targetLessonIds) {
+              nextStages[`${lid}:${block.stage}`] = `${effectiveDate}T19:00:00.000Z`;
+              const scheduled = computeNextLessonReview(
+                current,
+                lid,
+                block.stage,
+                'good',
+                effectiveDate
+              );
+              nextReviews[lid] = scheduled.reviewState;
+            }
           }
           if (block.morningPacketId) {
             nextPackets[block.morningPacketId] = `${effectiveDate}T07:15:00.000Z`;

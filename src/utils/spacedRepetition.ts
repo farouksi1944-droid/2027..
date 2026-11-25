@@ -9,7 +9,7 @@ import type {
 } from '../types/study';
 
 const MAX_REVIEW_DATE = '2026-12-05';
-const MIN_START_DATE = '2026-11-24';
+const MIN_START_DATE = '2026-11-28';
 
 export function clampStudyDate(dateStr: string): string {
   if (!dateStr || dateStr < MIN_START_DATE) return MIN_START_DATE;
@@ -56,7 +56,7 @@ for (const day of THIRTEEN_DAY_PLAN) {
 }
 
 export function getBaselineScheduleDates(lessonId: string): Record<SpacedStage, string> {
-  const s0 = plannedS0DateMap.get(lessonId) ?? '2026-11-24';
+  const s0 = plannedS0DateMap.get(lessonId) ?? '2026-11-28';
   const avoidMonday = (d: string) => (d === '2026-11-30' ? '2026-12-01' : d);
   return {
     S0: s0,

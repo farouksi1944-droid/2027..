@@ -27,7 +27,7 @@ interface CompetitionArenaViewProps {
   onSubmitDuel: (category: string, score: number, total: number, elapsedSec: number) => void;
 }
 
-const DUEL_CATEGORIES = ['الكل', 'تواريخ', 'مصطلحات', 'شخصيات', 'علوم إسلامية', 'مفاهيم علمية'] as const;
+const DUEL_CATEGORIES = ['الكل', 'تواريخ', 'مصطلحات', 'شخصيات', 'مفاهيم علمية'] as const;
 
 export function CompetitionArenaView({
   activePlayer,
@@ -337,7 +337,7 @@ export function CompetitionArenaView({
               <div className="text-xs font-semibold text-slate-200">
                 الدائرة النسبية لمدى التمكن في كل مادة ({activePlayer.name} مقابل {comparedPlayer.name})
               </div>
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                 {SUBJECT_ORDER.map((subId) => {
                   const info = SUBJECTS[subId];
                   const mine = computeSubjectMastery(activePlayer, subId);

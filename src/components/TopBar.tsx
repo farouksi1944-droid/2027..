@@ -1,3 +1,5 @@
+import { PWAInstallButton } from './PWAInstallButton';
+
 export type ActiveTab = 'schedule' | 'subjects' | 'morning' | 'arena';
 
 interface TopBarProps {
@@ -49,7 +51,8 @@ export function TopBar({ activeTab, onSelectTab, onStartQuickDuel }: TopBarProps
           })}
         </nav>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <PWAInstallButton />
           <button
             type="button"
             onClick={onStartQuickDuel}

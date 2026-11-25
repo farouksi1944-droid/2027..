@@ -55,7 +55,7 @@ export function SubjectsSpacedView({
   }, [initialExpandedLessonId]);
 
   const referenceDate =
-    activePlayer.lastActiveDate >= '2026-11-24' ? activePlayer.lastActiveDate : '2026-11-24';
+    activePlayer.lastActiveDate >= '2026-11-28' ? activePlayer.lastActiveDate : '2026-11-28';
 
   const remindersDue = useMemo(
     () => getRemindersForDate(activePlayer, referenceDate),
@@ -138,7 +138,7 @@ export function SubjectsSpacedView({
           </div>
         </div>
 
-        {/* 9-Subject Circular Percentage Rings Grid */}
+        {/* 4-Subject Circular Percentage Rings Grid */}
         <div className="border-t border-slate-800 pt-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs font-semibold text-slate-200">
@@ -155,7 +155,7 @@ export function SubjectsSpacedView({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {subjectMasteryList.map(({ info, mine }) => {
               const isSelected = selectedSubject === info.id;
               return (
@@ -203,7 +203,7 @@ export function SubjectsSpacedView({
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث عن درس (مثال: الاستنساخ، الدالة الأسية، RC...)"
+              placeholder="ابحث عن درس (مثال: الاستنساخ، الدالة الأسية، الحركة الدائرية، الحرب الباردة...)"
               className="w-full rounded-lg border border-slate-700 bg-slate-950 py-2 pr-9 pl-3 text-xs text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
             />
           </div>
